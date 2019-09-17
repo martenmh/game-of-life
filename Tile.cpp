@@ -1,10 +1,15 @@
 #include <iostream>
 #include "Tile.h"
-
+#include <stdlib.h>
+#include <cmath>
 
 // Initializing properties topleft, bottomright, center, column & row. & set Rectangle properties
 Tile::Tile(sf::Vector2f tl, sf::Vector2f br, std::vector<std::vector<Tile>> *p, int r, int c): topLeft{tl}, bottomRight{br}, 
-center{tl.x+(br.x-tl.x/2), tl.y+(br.y-tl.y/2)}, row{r}, column{c}, parent{p}, on{false} {
+center{tl.x+(br.x-tl.x/2), tl.y+(br.y-tl.y/2)}, row{r}, column{c}, parent{p}, on{false}{
+	enabledColor = sf::Color(150, 150, 250);
+	disabledColor = sf::Color(0, 0, 0);
+	enabledGridColor = sf::Color(250, 150, 100);
+	disabledGridColor = sf::Color(0, 0, 0);
 
 	setPosition(tl.x, tl.y);
 	setSize(sf::Vector2f(br.x-tl.x, br.y-tl.y));
@@ -22,11 +27,11 @@ Tile::Tile(): on{false}, column{0}, row{0}{
 void Tile::toggleOutline(){
 	if(outlineOn){
 		outlineOn = false;
-		setOutlineColor(sf::Color(0,0,0));
+		setOutlineColor(disabledGridColor);
 	}
 	else{
 		outlineOn = true;
-		setOutlineColor(sf::Color(250, 150, 100));
+		setOutlineColor(enabledGridColor);
 	}
 }
 
@@ -35,15 +40,6 @@ bool Tile::enabled(){
 	return on;
 }
 
-bool Tile::contains(sf::Vector2f point){
-	if(
-		(point.x < bottomRight.x && topLeft.x > point.x ) && 
-		(point.y > topLeft.y && bottomRight.y < point.y)) {
-		return true;
-	}
-	return false;
-}
-// Looks around and performs logic
 void Tile::check(){
 	
 	neighbors = around().size();
@@ -51,9 +47,9 @@ void Tile::check(){
 
 void Tile::execute(){
 
+
 	switch(neighbors){
-		// Survival || Birth
-		
+		// enabled() ? Survival : Birth
 		case 3:
 			if(!on)
 				birth();
@@ -71,15 +67,16 @@ void Tile::execute(){
 			if(on)
 				kill();
 			break;
+		// Death by isolation
 		case 1:
-			if(on)
-				kill();
-			break;
 		case 0:
 			if(on)
 				kill();
-		break;
+			break;
+		
 	}
+
+
 }
 
 // Return tiles around this tile
@@ -97,7 +94,7 @@ Tile Tile::right(){
 
 	if(column > 0 && column < parent->at(row).size()-1 && row > 0 && row < parent->size()-1)
 		return parent->at(row).at(column+1);
-	
+
 	return Tile();
 }
 Tile Tile::top(){
@@ -138,41 +135,62 @@ Tile Tile::br(){
 }
 
 
-std::vector<Tile> Tile::around(){
-	std::vector<Tile> v;
+std::vector<Tile*> Tile::around(){
+	std::vector<Tile*> v;
 	if(top().enabled())
-		v.push_back(top());
+		v.push_back(&parent->at(row).at(column-1));
 
 	if(left().enabled())
-		v.push_back(left());
+		v.push_back(&parent->at(row).at(column+1));
 
 	if(right().enabled())
-		v.push_back(right());
+		v.push_back(&parent->at(row-1).at(column));
 
 	if(down().enabled())
-		v.push_back(down());
+		v.push_back(&parent->at(row+1).at(column));
 	if(tl().enabled())
-		v.push_back(top());
+		v.push_back(&parent->at(row-1).at(column-1));
 
 	if(tr().enabled())
-		v.push_back(left());
+		v.push_back(&parent->at(row-1).at(column+1));
 
 	if(bl().enabled())
-		v.push_back(right());
+		v.push_back(&parent->at(row+1).at(column-1));
 
 	if(br().enabled())
-		v.push_back(down());
+		v.push_back(&parent->at(row+1).at(column+1));
 
 	return v;
 }
 
+
 void Tile::birth(){
 	on = true;
-	setFillColor(sf::Color(150, 50, 250));
+	setFillColor(enabledColor);
 }
 void Tile::kill(){
 	on = false;
-	setFillColor(sf::Color(0, 0, 0));
+	setFillColor(disabledColor);
 }
 
 
+void Tile::setEnabledColor(sf::Color c){
+	enabledColor = c;
+}
+void Tile::setEnabledOutlineColor(sf::Color c){
+
+	enabledGridColor = c;
+
+}
+
+void Tile::setDisabledColor(sf::Color c){
+	disabledColor = c;
+	disabledGridColor = c;
+}
+
+void Tile::setColor(sf::Color enabled, sf::Color enabledGrid, sf::Color disabled){
+	enabledGridColor = enabledGrid;
+	enabledColor = enabled;
+	disabledColor = disabled;
+	disabledGridColor = disabled;
+}

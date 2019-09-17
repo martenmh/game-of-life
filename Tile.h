@@ -8,33 +8,41 @@ struct Point{
 class Tile : public sf::RectangleShape {
 public:
 
+
 	
 	Tile(sf::Vector2f, sf::Vector2f, std::vector<std::vector<Tile>>*, int, int);
 
 	// Returns if tile is alive or dead
 	bool enabled();
 
-	bool contains(sf::Vector2f);
+
 
 	// Looks around and performs logic
 	void check();
 	void execute();
-	
+
 	void toggleOutline();
-	// Return tiles around this tile
+	
 	Tile left();
 	Tile right();
 	Tile top();
 	Tile down();
-
 	Tile tl();
 	Tile tr();
 	Tile bl();
 	Tile br();
-	std::vector<Tile> around();
+	// Return a vector of all the 9 tiles around this tile
+	std::vector<Tile*> around();
+
 
 	void birth();
 	void kill();
+
+	void setEnabledColor(sf::Color);
+	void setEnabledOutlineColor(sf::Color);
+
+	void setDisabledColor(sf::Color);
+	void setColor(sf::Color enabled, sf::Color enabledGrid, sf::Color disabled);
 
 
 private:
@@ -48,5 +56,11 @@ private:
 	int column;
 	int row;
 	std::vector<std::vector<Tile>> *parent;
+
+	sf::Color enabledColor;
+	sf::Color disabledColor;
+	sf::Color enabledGridColor;
+	sf::Color disabledGridColor;
+
 
 };
